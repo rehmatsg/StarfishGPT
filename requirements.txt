@@ -1,0 +1,5 @@
+duckduckpy
+langchain
+openai
+pyyaml
+alive_progress

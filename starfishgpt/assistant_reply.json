@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "assistant": {
+      "type": "array",
+      "description": "an array of assistant's thoughts",
+      "items": {
+        "type": "object",
+        "properties": {
+          "thoughts": {
+            "type": "object",
+            "properties": {
+              "thought": {
+                "type": "string",
+                "description": "thoughts"
+              },
+              "plan": {
+                "type": "string",
+                "description": "short bulleted list that conveys long-term plan"
+              },
+              "reasoning": {
+                "type": "string",
+                "description": "reasoning for thoughts and plans"
+              },
+              "criticism": {
+                "type": "string",
+                "description": "constructive self-criticism"
+              },
+              "answer": {
+                "type": "string",
+                "description": "thoughts summary to say to user"
+              },
+            },
+            "required": ["thought", "reasoning", "criticsm"]
+          },
+          "tool": {
+            "type": "string"
+            "description": "name of the tool you want to use"
+          },
+          "required": ["thoughts"]
+        }
+      }
+    }
+  },
+  "required": ["assistant"]
+}

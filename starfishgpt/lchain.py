@@ -1,12 +1,12 @@
-from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
+from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser, initialize_agent, AgentType
 from langchain.prompts import BaseChatPromptTemplate
 from langchain import LLMChain
 from langchain.chat_models import ChatOpenAI
 from typing import List, Union
 from langchain.schema import AgentAction, AgentFinish, HumanMessage
+from langchain.memory import ConversationBufferMemory
 import re
 from typing import Optional
-
 
 # Set up a prompt template
 class _CustomPromptTemplate(BaseChatPromptTemplate):
@@ -20,8 +20,8 @@ class _CustomPromptTemplate(BaseChatPromptTemplate):
     # Format them in a particular way
     intermediate_steps = kwargs.pop("intermediate_steps")
     thoughts = ""
-    for action, observation in intermediate_steps:
-      thoughts += action.log
+    for tool, observation in intermediate_steps:
+      thoughts += tool.log
       thoughts += f"\nObservation: {observation}\nThought: "
     # Set the agent_scratchpad variable to that value
     kwargs["agent_scratchpad"] = thoughts
@@ -48,16 +48,18 @@ class _CustomOutputParser(AgentOutputParser):
         log=llm_output,
       )
     # Parse out the action and action input
-    regex = r"Action\s*\d*\s*:(.*?)\nAction\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
+    regex = r"Tool\s*\d*\s*:(.*?)\nTool\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
     match = re.search(regex, llm_output, re.DOTALL)
     if not match:
       raise ValueError(f"Could not parse LLM output: `{llm_output}`")
     action = match.group(1).strip()
     action_input = match.group(2)
     # Return the action and action input
-    return AgentAction(tool=action,
-                       tool_input=action_input.strip(" ").strip('"'),
-                       log=llm_output)
+    return AgentAction(
+      tool=action,
+      tool_input=action_input.strip(" ").strip('"'),
+      log=llm_output
+    )
 
 
 _llm = ChatOpenAI(temperature=0)
@@ -70,17 +72,23 @@ class AIFunctions:
   def chat(system_prompt: str, prompt: str, tools: Optional = []):
     template = system_prompt + """
 You have access to the following tools:
-
 {tools}
 
 Use the following format:
 
-Question: the input question you must answer
-Thought: you should always think about what to do
-Tool: the action to take, should be one of [{tool_names}]
-Tool Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
+Request: the user's question you must answer
+Plan: you should always plan what you need to do
+Thought: always think ahead what action you need to perform
+
+If you plan to use a tool, output the following format, else skip:
+
+Tool: tool you want to use, should be one of [{tool_names}].
+Tool Input: the input to pass to the tool
+
+Observation: if you used a tool, write your observations; else, say "I do not need a tool to answer this"
+
+... (this Though/Tool/Tool Input/Observation can repeat N times)
+
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
@@ -90,17 +98,20 @@ Question: {prompt}
     langchain_prompt = _CustomPromptTemplate(
       template=template,
       tools=tools,
-      # This omits the `agent_scratchpad`, `tools`, and `tool_names` variables because those are generated dynamically
-      # This includes the `intermediate_steps` variable because that is needed
-      input_variables=["prompt", "intermediate_steps"])
+      input_variables=["prompt", "intermediate_steps"]
+    )
     llm_chain = LLMChain(llm=_llm, prompt=langchain_prompt)
     tool_names = [tool.name for tool in tools]
-    agent = LLMSingleActionAgent(llm_chain=llm_chain,
-                                 output_parser=_output_parser,
-                                 stop=["\nObservation:"],
-                                 allowed_tools=tool_names)
-    agent_executor = AgentExecutor.from_agent_and_tools(agent=agent,
-                                                        tools=tools,
-                                                        verbose=True)
-    agent_executor.run(prompt)
-    return
+    agent = LLMSingleActionAgent(
+      llm_chain=llm_chain,
+      output_parser=_output_parser,
+      stop=["\nObservation:"],
+      allowed_tools=tool_names
+    )
+    agent_executor = AgentExecutor.from_agent_and_tools(
+      agent=agent,
+      tools=tools,
+      verbose=True
+    )
+    answer = agent_executor.run(prompt)
+    return answer

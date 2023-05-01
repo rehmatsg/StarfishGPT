@@ -11,6 +11,8 @@ replit = "^3.2.4"
 Flask = "^2.2.0"
 urllib3 = "^1.26.12"
 duckduckgo-search = "^2.8.6"
+PyYAML = "^6.0"
+spinners = "^0.0.24"
 
 [tool.poetry.dev-dependencies]
 debugpy = "^1.6.2"

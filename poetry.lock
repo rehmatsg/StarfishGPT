@@ -420,6 +420,14 @@ global = ["platformdirs (>=1.4.4)"]
 validation = ["pydantic (>=1.7.4)"]
 
 [[package]]
+name = "pyyaml"
+version = "6.0"
+description = "YAML parser and emitter for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "replit"
 version = "3.2.5"
 description = "A library for interacting with features of repl.it"
@@ -501,6 +509,14 @@ pytoolconfig = {version = ">=1.2.2", extras = ["global"]}
 [package.extras]
 dev = ["pytest (>=7.0.1)", "pytest-timeout (>=2.1.0)", "build (>=0.7.0)", "pre-commit (>=2.20.0)"]
 doc = ["pytoolconfig", "sphinx (>=4.5.0)", "sphinx-autodoc-typehints (>=1.18.1)", "sphinx-rtd-theme (>=1.0.0)"]
+
+[[package]]
+name = "spinners"
+version = "0.0.24"
+description = "Spinners for terminals"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "toml"
@@ -592,7 +608,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10.0,<3.11"
-content-hash = "c1cd295797ec48d0f1babd2ae7fdd248ae78dab8e5c74b3017f047e2bc0d9413"
+content-hash = "c9407824275807f019b6139c4fe2800f7a37200142452f26ee901fc0206d9869"
 
 [metadata.files]
 aiohttp = []
@@ -631,10 +647,12 @@ pyflakes = []
 pyseto = []
 python-lsp-jsonrpc = []
 pytoolconfig = []
+pyyaml = []
 replit = []
 replit-python-lsp-server = []
 requests = []
 rope = []
+spinners = []
 toml = []
 tomli = []
 typing-extensions = []
